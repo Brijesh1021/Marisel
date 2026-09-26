@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  MapContainer, 
-  TileLayer, 
-  Polygon, 
-  Polyline, 
-  CircleMarker, 
-  Popup, 
-  Tooltip, 
-  LayerGroup 
-} from 'react-leaflet';
+import Map, { Source, Layer, Marker, Popup } from 'react-map-gl/maplibre';
+import * as maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { 
   spillPolygonCoordinates, 
   originPolygonCoordinates, 
@@ -17,20 +10,24 @@ import {
   mockForecastZones 
 } from '../../data/mockData';
 import { Vessel } from '../../types';
-import { Layers, Eye, ShieldAlert, ArrowUpRight } from 'lucide-react';
+import { Layers, ArrowUpRight } from 'lucide-react';
 
 interface OceanMapProps {
   onSelectVessel?: (vessel: Vessel) => void;
   showBackwardParticles?: boolean;
   showForecastLayers?: boolean;
   activeTab?: 'hindcast' | 'forecast';
+  simulationProgress?: number; // 0 to 100
 }
+
+// Helper to flip [lat, lng] to [lng, lat] for GeoJSON/MapLibre
+const flipCoords = (coords: [number, number][]) => coords.map(c => [c[1], c[0]]);
 
 export const OceanMap: React.FC<OceanMapProps> = ({
   onSelectVessel,
   showBackwardParticles = false,
   showForecastLayers = false,
-  activeTab
+  simulationProgress = 100,
 }) => {
   const [layers, setLayers] = useState({
     spill: true,
@@ -40,240 +37,358 @@ export const OceanMap: React.FC<OceanMapProps> = ({
     particles: showBackwardParticles
   });
 
-  const mapCenter: [number, number] = [13.405, 80.155];
+  const [selectedVesselPopup, setSelectedVesselPopup] = useState<Vessel | null>(null);
+
+  const initialViewState = {
+    longitude: 80.355,
+    latitude: 13.205,
+    zoom: 10
+  };
+
+  // GeoJSON Features
+  const spillGeoJSON = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[...flipCoords(spillPolygonCoordinates), flipCoords(spillPolygonCoordinates)[0]]]
+        },
+        properties: {}
+      }
+    ]
+  };
+
+  const originGeoJSON = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[...flipCoords(originPolygonCoordinates), flipCoords(originPolygonCoordinates)[0]]]
+        },
+        properties: {}
+      }
+    ]
+  };
+
+  const particlesGeoJSON = {
+    type: 'FeatureCollection',
+    features: mockDriftParticles.map(p => {
+      // Interpolate from start location (Spill) to backward drift end location (Origin)
+      const startLat = 13.155;
+      const startLng = 80.330;
+      const progress = simulationProgress / 100;
+      
+      const currentLat = startLat + (p.lat - startLat) * progress;
+      const currentLng = startLng + (p.lng - startLng) * progress;
+      
+      return {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [currentLng, currentLat] },
+        properties: { intensity: p.intensity }
+      };
+    })
+  };
 
   const toggleLayer = (layerKey: keyof typeof layers) => {
     setLayers(prev => ({ ...prev, [layerKey]: !prev[layerKey] }));
   };
 
   return (
-    <div className="relative w-full h-full min-h-[460px] rounded-xl overflow-hidden border border-slate-800 shadow-2xl">
-      {/* Leaflet Container */}
-      <MapContainer
-        center={mapCenter}
-        zoom={11}
-        scrollWheelZoom={false}
-        className="w-full h-full z-0"
+    <div className="relative w-full h-full min-h-[460px] rounded-xl overflow-hidden border border-slate-200 shadow-md bg-slate-900">
+      <Map
+        initialViewState={initialViewState}
+        mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+        mapLib={maplibregl}
+        interactive={true}
+        style={{ width: '100%', height: '100%' }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        {/* 1. Spill Polygon Layer */}
+        {/* Spill Polygon */}
         {layers.spill && (
-          <Polygon
-            positions={spillPolygonCoordinates}
-            pathOptions={{
-              color: '#06b6d4',
-              fillColor: '#0891b2',
-              fillOpacity: 0.45,
-              weight: 2,
-              dashArray: '4, 4'
-            }}
-          >
-            <Tooltip permanent direction="center" className="bg-[#0b1329]/90 text-cyan-300 font-mono text-[10px] px-2 py-0.5 rounded border border-cyan-500/30">
-              Suspected Oil Slick (23.7 km²)
-            </Tooltip>
-          </Polygon>
+          <Source id="spill-source" type="geojson" data={spillGeoJSON as any}>
+            <Layer
+              id="spill-fill"
+              type="fill"
+              paint={{
+                'fill-color': '#3b82f6',
+                'fill-opacity': 0.45
+              }}
+            />
+            <Layer
+              id="spill-line"
+              type="line"
+              paint={{
+                'line-color': '#2563eb',
+                'line-width': 2,
+                'line-dasharray': [4, 4]
+              }}
+            />
+          </Source>
         )}
 
-        {/* 2. Probable Origin Region Layer */}
+        {/* Origin Polygon */}
         {layers.origin && (
-          <Polygon
-            positions={originPolygonCoordinates}
-            pathOptions={{
-              color: '#f59e0b',
-              fillColor: '#d97706',
-              fillOpacity: 0.25,
-              weight: 2,
-              dashArray: '6, 6'
-            }}
-          >
-            <Tooltip direction="top" className="bg-[#0b1329]/90 text-amber-300 font-mono text-[10px] px-2 py-0.5 rounded border border-amber-500/30">
-              Probable Origin Zone (82% Conf.)
-            </Tooltip>
-          </Polygon>
+          <Source id="origin-source" type="geojson" data={originGeoJSON as any}>
+            <Layer
+              id="origin-fill"
+              type="fill"
+              paint={{
+                'fill-color': '#f59e0b',
+                'fill-opacity': 0.25
+              }}
+            />
+            <Layer
+              id="origin-line"
+              type="line"
+              paint={{
+                'line-color': '#d97706',
+                'line-width': 2,
+                'line-dasharray': [6, 6]
+              }}
+            />
+          </Source>
         )}
 
-        {/* 3. Backward Drift Simulation Particles */}
+        {/* Backward Drift Particles Heatmap */}
         {(layers.particles || showBackwardParticles) && (
-          <LayerGroup>
-            {mockDriftParticles.map(p => (
-              <CircleMarker
-                key={p.id}
-                center={[p.lat, p.lng]}
-                radius={3}
-                pathOptions={{
-                  color: '#38bdf8',
-                  fillColor: '#0284c7',
-                  fillOpacity: p.intensity,
-                  weight: 1
+          <Source id="particles-source" type="geojson" data={particlesGeoJSON as any}>
+            <Layer
+              id="particles-heatmap"
+              type="heatmap"
+              paint={{
+                'heatmap-weight': ['get', 'intensity'],
+                'heatmap-intensity': 1,
+                'heatmap-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['heatmap-density'],
+                  0, 'rgba(2,132,199,0)',
+                  0.2, 'rgba(56,189,248,0.5)',
+                  1, 'rgba(125,211,252,1)'
+                ],
+                'heatmap-radius': 15,
+                'heatmap-opacity': 0.8
+              }}
+            />
+            <Layer
+              id="particles-point"
+              type="circle"
+              paint={{
+                'circle-radius': 2,
+                'circle-color': '#38bdf8',
+                'circle-opacity': 0.8
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Forecast Zones */}
+        {(layers.forecast || showForecastLayers) && mockForecastZones.map(zone => {
+          const colors = { 6: '#06b6d4', 12: '#f59e0b', 24: '#f43f5e' };
+          const zoneColor = colors[zone.hours as keyof typeof colors] || '#06b6d4';
+          
+          const zoneGeoJSON = {
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: [[...flipCoords(zone.polygon), flipCoords(zone.polygon)[0]]]
+                },
+                properties: {}
+              }
+            ]
+          };
+
+          return (
+            <Source key={`forecast-${zone.hours}`} id={`forecast-source-${zone.hours}`} type="geojson" data={zoneGeoJSON as any}>
+              <Layer
+                id={`forecast-fill-${zone.hours}`}
+                type="fill"
+                paint={{
+                  'fill-color': zoneColor,
+                  'fill-opacity': 0.15
                 }}
               />
-            ))}
-          </LayerGroup>
-        )}
+              <Layer
+                id={`forecast-line-${zone.hours}`}
+                type="line"
+                paint={{
+                  'line-color': zoneColor,
+                  'line-width': 2,
+                  'line-dasharray': [8, 8]
+                }}
+              />
+            </Source>
+          );
+        })}
 
-        {/* 4. Forward Forecast Layers (6h, 12h, 24h) */}
-        {(layers.forecast || showForecastLayers) && (
-          <LayerGroup>
-            {mockForecastZones.map((zone) => {
-              const colors = {
-                6: '#06b6d4',
-                12: '#f59e0b',
-                24: '#f43f5e'
-              };
-              const zoneColor = colors[zone.hours as keyof typeof colors] || '#06b6d4';
+        {/* Vessel Trajectories */}
+        {layers.vessels && mockVessels.map(vessel => {
+          if (vessel.coordinates.length === 0) return null;
+          const isTopVessel = vessel.id === 'vessel-a';
+          const markerColor = isTopVessel ? '#f43f5e' : vessel.score > 80 ? '#f59e0b' : '#38bdf8';
+          
+          const lineGeoJSON = {
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                geometry: {
+                  type: 'LineString',
+                  coordinates: flipCoords(vessel.coordinates)
+                },
+                properties: {}
+              }
+            ]
+          };
 
-              return (
-                <Polygon
-                  key={`forecast-${zone.hours}`}
-                  positions={zone.polygon}
-                  pathOptions={{
-                    color: zoneColor,
-                    fillColor: zoneColor,
-                    fillOpacity: 0.15,
-                    weight: 2,
-                    dashArray: '8, 8'
-                  }}
+          return (
+            <Source key={`track-${vessel.id}`} id={`track-source-${vessel.id}`} type="geojson" data={lineGeoJSON as any}>
+              <Layer
+                id={`track-line-${vessel.id}`}
+                type="line"
+                paint={{
+                  'line-color': markerColor,
+                  'line-width': isTopVessel ? 3 : 2,
+                  'line-dasharray': isTopVessel ? [1] : [3, 4],
+                  'line-opacity': 0.7
+                }}
+              />
+            </Source>
+          );
+        })}
+
+        {/* Vessel Markers */}
+        {layers.vessels && mockVessels.map(vessel => {
+          const isTopVessel = vessel.id === 'vessel-a';
+          const markerColor = isTopVessel ? '#f43f5e' : vessel.score > 80 ? '#f59e0b' : '#38bdf8';
+          
+          return (
+            <Marker 
+              key={`marker-${vessel.id}`} 
+              longitude={vessel.currentPos[1]} 
+              latitude={vessel.currentPos[0]} 
+              anchor="center"
+              onClick={e => {
+                e.originalEvent.stopPropagation();
+                setSelectedVesselPopup(vessel);
+              }}
+            >
+              <div 
+                className="rounded-full cursor-pointer shadow-[0_0_10px_rgba(0,0,0,0.5)] border-2 border-white/20"
+                style={{
+                  width: isTopVessel ? '16px' : '12px',
+                  height: isTopVessel ? '16px' : '12px',
+                  backgroundColor: markerColor
+                }}
+              />
+            </Marker>
+          );
+        })}
+
+        {/* Selected Vessel Popup */}
+        {selectedVesselPopup && (
+          <Popup
+            longitude={selectedVesselPopup.currentPos[1]}
+            latitude={selectedVesselPopup.currentPos[0]}
+            anchor="bottom"
+            onClose={() => setSelectedVesselPopup(null)}
+            closeOnClick={false}
+            className="z-50"
+          >
+            <div className="p-2 min-w-[200px] text-slate-900">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+                <span className="font-bold text-sm">{selectedVesselPopup.name}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 font-mono rounded font-semibold ${
+                  selectedVesselPopup.score > 80 ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  Score {selectedVesselPopup.score}
+                </span>
+              </div>
+
+              <div className="space-y-1 text-xs text-slate-600 font-mono mb-3">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Speed:</span>
+                  <span>{selectedVesselPopup.speed} knots</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Heading:</span>
+                  <span>{selectedVesselPopup.heading}°</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Dist to Origin:</span>
+                  <span className="text-blue-600 font-semibold">{selectedVesselPopup.distanceFromOrigin} km</span>
+                </div>
+              </div>
+
+              {onSelectVessel && (
+                <button
+                  onClick={() => onSelectVessel(selectedVesselPopup)}
+                  className="w-full flex items-center justify-center space-x-1.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold transition shadow-sm"
                 >
-                  <Tooltip permanent direction="center" className="bg-[#0b1329]/90 text-slate-100 font-mono text-[10px] px-2 py-0.5 rounded border border-slate-700">
-                    +{zone.hours}h Forecast Zone
-                  </Tooltip>
-                </Polygon>
-              );
-            })}
-          </LayerGroup>
+                  <span>View Evidence</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </Popup>
         )}
-
-        {/* 5. Vessels and AIS Trajectory Tracks */}
-        {layers.vessels && (
-          <LayerGroup>
-            {mockVessels.map((vessel) => {
-              const isTopVessel = vessel.id === 'vessel-a';
-              const markerColor = isTopVessel ? '#f43f5e' : vessel.score > 80 ? '#f59e0b' : '#38bdf8';
-
-              return (
-                <React.Fragment key={vessel.id}>
-                  {/* Vessel Track Polyline */}
-                  {vessel.coordinates.length > 0 && (
-                    <Polyline
-                      positions={vessel.coordinates}
-                      pathOptions={{
-                        color: markerColor,
-                        weight: isTopVessel ? 2.5 : 1.5,
-                        opacity: 0.7,
-                        dashArray: isTopVessel ? 'none' : '3, 4'
-                      }}
-                    />
-                  )}
-
-                  {/* Current Position Marker */}
-                  <CircleMarker
-                    center={vessel.currentPos}
-                    radius={isTopVessel ? 8 : 6}
-                    pathOptions={{
-                      color: markerColor,
-                      fillColor: markerColor,
-                      fillOpacity: 0.9,
-                      weight: 2
-                    }}
-                  >
-                    <Popup>
-                      <div className="p-1 min-w-[200px]">
-                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-700">
-                          <span className="font-bold text-sm text-slate-100">{vessel.name}</span>
-                          <span className={`text-[10px] px-1.5 py-0.5 font-mono rounded font-semibold ${
-                            vessel.score > 80 ? 'bg-amber-500/20 text-amber-300' : 'bg-cyan-500/20 text-cyan-300'
-                          }`}>
-                            Score {vessel.score}
-                          </span>
-                        </div>
-
-                        <div className="space-y-1 text-xs text-slate-300 font-mono mb-3">
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Speed:</span>
-                            <span>{vessel.speed} knots</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Heading:</span>
-                            <span>{vessel.heading}°</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Dist to Origin:</span>
-                            <span className="text-cyan-400 font-semibold">{vessel.distanceFromOrigin} km</span>
-                          </div>
-                        </div>
-
-                        {onSelectVessel && (
-                          <button
-                            onClick={() => onSelectVessel(vessel)}
-                            className="w-full flex items-center justify-center space-x-1.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold transition"
-                          >
-                            <span>View Evidence</span>
-                            <ArrowUpRight className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </Popup>
-                  </CircleMarker>
-                </React.Fragment>
-              );
-            })}
-          </LayerGroup>
-        )}
-      </MapContainer>
+      </Map>
 
       {/* Layer Selector Floating Control */}
-      <div className="absolute top-4 right-4 z-10 glass-panel p-2.5 rounded-lg border border-slate-700/80 text-xs">
-        <div className="flex items-center space-x-2 text-slate-300 font-semibold pb-2 mb-2 border-b border-slate-800">
-          <Layers className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Map Layers</span>
+      <div className="absolute top-4 right-4 z-10 bg-white/95 backdrop-blur-md p-3 rounded-lg border border-slate-200 text-xs shadow-lg">
+        <div className="flex items-center space-x-2 text-slate-800 font-bold pb-2 mb-2 border-b border-slate-200">
+          <Layers className="w-4 h-4 text-blue-600" />
+          <span>Map Layers (MapLibre)</span>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="flex items-center space-x-2 text-slate-300 cursor-pointer">
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-slate-700 cursor-pointer font-medium hover:text-blue-600 transition">
             <input
               type="checkbox"
               checked={layers.spill}
               onChange={() => toggleLayer('spill')}
-              className="accent-cyan-500 rounded"
+              className="accent-blue-500 rounded"
             />
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-            <span>Spill</span>
+            <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+            <span>Spill Detect</span>
           </label>
 
-          <label className="flex items-center space-x-2 text-slate-300 cursor-pointer">
+          <label className="flex items-center space-x-2 text-slate-700 cursor-pointer font-medium hover:text-amber-600 transition">
             <input
               type="checkbox"
               checked={layers.origin}
               onChange={() => toggleLayer('origin')}
               className="accent-amber-500 rounded"
             />
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span className="w-3 h-3 rounded-full bg-amber-500"></span>
             <span>Origin Zone</span>
           </label>
 
-          <label className="flex items-center space-x-2 text-slate-300 cursor-pointer">
+          <label className="flex items-center space-x-2 text-slate-700 cursor-pointer font-medium hover:text-rose-600 transition">
             <input
               type="checkbox"
               checked={layers.vessels}
               onChange={() => toggleLayer('vessels')}
               className="accent-rose-500 rounded"
             />
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-            <span>Vessels</span>
+            <span className="w-3 h-3 rounded-full bg-rose-500"></span>
+            <span>Vessels (AIS)</span>
           </label>
 
-          <label className="flex items-center space-x-2 text-slate-300 cursor-pointer">
+          <label className="flex items-center space-x-2 text-slate-700 cursor-pointer font-medium hover:text-purple-600 transition">
             <input
               type="checkbox"
               checked={layers.forecast}
               onChange={() => toggleLayer('forecast')}
-              className="accent-blue-500 rounded"
+              className="accent-purple-500 rounded"
             />
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+            <span className="w-3 h-3 rounded-full bg-purple-500"></span>
             <span>Forecast</span>
           </label>
         </div>

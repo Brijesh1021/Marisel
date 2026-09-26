@@ -18,17 +18,37 @@ import { mockCase } from '../data/mockData';
 export const DriftOriginPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'hindcast' | 'forecast'>('hindcast');
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simComplete, setSimComplete] = useState(true);
+  const [simComplete, setSimComplete] = useState(false); // Default to false until run
+  const [progress, setProgress] = useState(0);
+  const animationRef = React.useRef<number>();
 
   const handleRunHindcast = () => {
     setIsSimulating(true);
     setSimComplete(false);
+    setProgress(0);
 
-    setTimeout(() => {
-      setIsSimulating(false);
-      setSimComplete(true);
-    }, 2000);
+    const startTime = performance.now();
+    const animate = (time: number) => {
+      const elapsed = time - startTime;
+      const currentProgress = Math.min((elapsed / 3000) * 100, 100);
+      setProgress(currentProgress);
+      
+      if (currentProgress < 100) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        setIsSimulating(false);
+        setSimComplete(true);
+      }
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
   };
+
+  React.useEffect(() => {
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -78,6 +98,7 @@ export const DriftOriginPage: React.FC = () => {
               showBackwardParticles={true}
               showForecastLayers={false}
               activeTab="hindcast"
+              simulationProgress={simComplete ? 100 : progress}
             />
           </div>
 
@@ -120,14 +141,22 @@ export const DriftOriginPage: React.FC = () => {
                 className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider shadow-lg transition flex items-center justify-center space-x-2 disabled:opacity-50"
               >
                 <Play className="w-4 h-4 fill-white" />
-                <span>RUN BACKWARD SIMULATION</span>
+                <span>{isSimulating ? 'SIMULATING...' : simComplete ? 'RE-RUN SIMULATION' : 'RUN BACKWARD SIMULATION'}</span>
               </button>
 
               {/* Loading State */}
               {isSimulating && (
-                <div className="p-4 rounded-lg bg-cyan-950/40 border border-cyan-500/40 flex items-center space-x-3 font-mono text-xs text-cyan-300">
-                  <Activity className="w-4 h-4 animate-spin text-cyan-400" />
-                  <span>Computing 5,000 particle trajectories backward in time...</span>
+                <div className="p-4 rounded-lg bg-cyan-950/40 border border-cyan-500/40 space-y-2">
+                  <div className="flex items-center space-x-3 font-mono text-xs text-cyan-300">
+                    <Activity className="w-4 h-4 animate-spin text-cyan-400" />
+                    <span>Computing backward trajectories...</span>
+                  </div>
+                  <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-cyan-400 h-full transition-all duration-75"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
                 </div>
               )}
 

@@ -55,6 +55,7 @@ export interface Vessel {
   signalGaps: number;
   coordinates: [number, number][]; // Track path [lat, lng]
   currentPos: [number, number];
+  timeSeriesData: { time: string; speed: number; gap?: boolean }[];
 }
 
 export interface DriftParticle {

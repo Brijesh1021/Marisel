@@ -4,9 +4,15 @@
 
 @layer base {
   body {
-    background-color: #0b1329;
-    color: #f1f5f9;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply bg-slate-50 text-slate-900 font-sans;
+    background: radial-gradient(circle at 50% -20%, #ffffff 0%, #f1f5f9 80%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.025em;
   }
 }
 
@@ -16,53 +22,55 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b1329;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: rgba(148, 163, 184, 0.5);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: rgba(100, 116, 139, 0.8);
 }
 
-/* Glassmorphism Card Style */
+/* Glassmorphism Card Style - Light Mode version */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 
+    0 4px 20px -2px rgba(0, 0, 0, 0.05), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border-radius: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Very subtle top highlight line for panels */
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  opacity: 0.5;
 }
 
 .glass-panel-hover {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .glass-panel-hover:hover {
-  border-color: rgba(56, 189, 248, 0.3);
-  box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 
+    0 12px 30px -5px rgba(6, 182, 212, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
 }
 
-/* Leaflet Dark Map Overrides */
-.leaflet-container {
-  background-color: #060a17 !important;
-  font-family: 'Inter', sans-serif !important;
-}
 
-.leaflet-tile-pane {
-  filter: brightness(0.7) invert(1) contrast(1.2) hue-rotate(200deg) saturate(0.3);
-}
-
-.leaflet-popup-content-wrapper {
-  background: #0f172a !important;
-  color: #f8fafc !important;
-  border: 1px solid rgba(56, 189, 248, 0.3) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
-}
-
-.leaflet-popup-tip {
-  background: #0f172a !important;
-}
 
 /* Radar pulse animation for map markers */
 @keyframes radar-ping {
