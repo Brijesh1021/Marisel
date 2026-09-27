@@ -3,11 +3,11 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 // @ts-ignore
 import MapboxWorker from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker';
 
-maplibregl.workerClass = MapboxWorker;
+(maplibregl as any).workerClass = MapboxWorker;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
