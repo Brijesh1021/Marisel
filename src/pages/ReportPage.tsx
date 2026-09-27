@@ -2,8 +2,15 @@ import React, { useState } from 'react';
 import { FileText, Download, ShieldCheck, CheckCircle2, ChevronRight, File } from 'lucide-react';
 import { mockCase, mockVessels } from '../data/mockData';
 
+import { reportCompiler } from '../services/reportCompiler';
+import { defaultAuditLedger } from '../engine/auditLedger';
+
 export const ReportPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Compile live MARPOL violation report
+  const marpolReport = reportCompiler.compileMARPOLReport('vessel-a');
+  const ledger = defaultAuditLedger.getLedger();
 
   const generateReport = () => {
     setIsGenerating(true);
@@ -21,7 +28,7 @@ export const ReportPage: React.FC = () => {
             Generate and export formal evidence-based attribution reports for port state authorities.
           </p>
         </div>
-        <button 
+        <button
           onClick={generateReport}
           disabled={isGenerating}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition shadow-md disabled:opacity-50"
@@ -57,7 +64,7 @@ export const ReportPage: React.FC = () => {
         <div className="space-y-3 relative z-10">
           <h3 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-1">1. Executive Summary</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            On {mockCase.acquisitionDate}, a suspected marine oil slick covering {mockCase.area} km² was detected via {mockCase.satellite} imagery near {mockCase.centroid[0].toFixed(2)}°N, {mockCase.centroid[1].toFixed(2)}°E. Hydrodynamic hindcast drift analysis established a probable release window of {mockCase.estimatedReleaseWindow}. 
+            On {mockCase.acquisitionDate}, a suspected marine oil slick covering {mockCase.area} km² was detected via {mockCase.satellite} imagery near {mockCase.centroid[0].toFixed(2)}°N, {mockCase.centroid[1].toFixed(2)}°E. Hydrodynamic hindcast drift analysis established a probable release window of {mockCase.estimatedReleaseWindow}.
           </p>
           <p className="text-sm text-slate-600 leading-relaxed">
             Multi-agent evidence fusion, incorporating SAR segmentation, AIS vessel trajectory analysis, and counterfactual metocean simulation, indicates a high physical and temporal correlation (Score: {selectedVessel.score}/100) with the candidate vessel <strong>{selectedVessel.name} ({selectedVessel.imo})</strong>.
@@ -67,7 +74,7 @@ export const ReportPage: React.FC = () => {
         {/* Evidence Matrix Summary */}
         <div className="space-y-3 relative z-10">
           <h3 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-1">2. Primary Candidate: {selectedVessel.name}</h3>
-          
+
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
               <div className="text-xs text-slate-500 font-bold uppercase mb-1">Temporal Intersection</div>
@@ -102,7 +109,7 @@ export const ReportPage: React.FC = () => {
             <li className="flex items-center space-x-2"><File className="w-4 h-4 text-slate-400" /> <span>Appendix D: Multi-agent consensus cryptographic audit log.</span></li>
           </ul>
         </div>
-        
+
         {/* Footer */}
         <div className="absolute bottom-8 left-8 right-8 border-t border-slate-200 pt-4 flex justify-between items-center text-xs text-slate-400 z-10">
           <div>Confidential – Port State Control Eyes Only</div>

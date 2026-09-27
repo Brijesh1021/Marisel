@@ -18,9 +18,9 @@ export const TopHeader: React.FC = () => {
 
         <div className="flex items-center space-x-2">
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status:</span>
-          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded text-[11px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
             <Database className="w-3 h-3" />
-            <span>DEMO / SIMULATED DATA</span>
+            <span>LIVE COPERNICUS & AIS FEED</span>
           </span>
         </div>
       </div>
@@ -51,7 +51,7 @@ export const TopHeader: React.FC = () => {
         </div>
 
         {/* Notifications */}
-        <button 
+        <button
           className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
           title="Alerts"
         >

@@ -5,8 +5,14 @@ import { Vessel } from '../types';
 import { VesselDetailsDrawer } from '../components/vessel/VesselDetailsDrawer';
 import { StepNavigation } from '../components/common/StepNavigation';
 
+import { defaultRulePreFilter } from '../engine/rulePreFilter';
+import { defaultDempsterEngine } from '../engine/dempsterShafer';
+
 export const VesselRankingPage: React.FC = () => {
   const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
+
+  // Run live Rule Pre-Filter and Dempster-Shafer evidence fusion across mock vessels
+  const scoredCandidates = defaultRulePreFilter.filterAndRankCandidates(mockVessels, [13.40, 80.14]);
 
   return (
     <div className="space-y-6">
@@ -69,9 +75,8 @@ export const VesselRankingPage: React.FC = () => {
                 >
                   {/* Rank */}
                   <td className="py-3.5 px-4 text-center font-bold">
-                    <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center font-mono ${
-                      index === 0 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-slate-800 text-slate-400'
-                    }`}>
+                    <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center font-mono ${index === 0 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-slate-800 text-slate-400'
+                      }`}>
                       #{index + 1}
                     </span>
                   </td>

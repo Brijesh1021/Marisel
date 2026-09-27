@@ -3,12 +3,29 @@ import { Play, Anchor, AlertTriangle, Route, Waves, Maximize2 } from 'lucide-rea
 import { mockVessels } from '../data/mockData';
 import { KPICard } from '../components/common/KPICard';
 
+import { defaultLagrangianEngine } from '../engine/lagrangianDrift';
+
 export const SimulationPage: React.FC = () => {
   const [selectedVesselId, setSelectedVesselId] = useState(mockVessels[0].id);
   const [isSimulating, setIsSimulating] = useState(false);
   const [progress, setProgress] = useState(100);
   const animationRef = useRef<number>();
   const selectedVessel = mockVessels.find(v => v.id === selectedVesselId) || mockVessels[0];
+
+  // Run live physics simulation calculation
+  const simResult = defaultLagrangianEngine.runCounterfactualForwardSimulation(
+    selectedVessel.currentPos,
+    [13.40, 80.14], // Observed slick centroid
+    {
+      currentSpeed: 0.4,
+      currentDir: 135,
+      windSpeed: 12.5,
+      windDir: 45,
+      stokesDrift: 0.08,
+      seaState: 'Moderate'
+    },
+    8 // drift hours
+  );
 
   const runSimulation = () => {
     setIsSimulating(true);
@@ -96,8 +113,8 @@ export const SimulationPage: React.FC = () => {
         <div className="lg:col-span-3 space-y-6">
           
           <div className="grid grid-cols-2 gap-4">
-            <KPICard title="Spatial Intersection Score" value={selectedVessel.score > 80 ? '92' : selectedVessel.score > 70 ? '64' : '21'} unit="%" icon={Maximize2} color={selectedVessel.score > 80 ? 'emerald' : selectedVessel.score > 70 ? 'amber' : 'blue'} subtitle="Overlap with observed slick" />
-            <KPICard title="Physical Consistency" value={selectedVessel.score > 80 ? 'High' : selectedVessel.score > 70 ? 'Mod' : 'Low'} icon={Waves} color={selectedVessel.score > 80 ? 'emerald' : selectedVessel.score > 70 ? 'amber' : 'blue'} subtitle="Mass balance constraints" />
+            <KPICard title="Spatial Intersection Score" value={Math.round(simResult.spatialIoU * 100).toString()} unit="%" icon={Maximize2} color={simResult.spatialIoU > 0.7 ? 'emerald' : simResult.spatialIoU > 0.4 ? 'amber' : 'blue'} subtitle="IoU overlap with observed slick" />
+            <KPICard title="Physical Consistency" value={simResult.physicalConsistencyScore > 70 ? 'High' : simResult.physicalConsistencyScore > 40 ? 'Mod' : 'Low'} icon={Waves} color={simResult.physicalConsistencyScore > 70 ? 'emerald' : simResult.physicalConsistencyScore > 40 ? 'amber' : 'blue'} subtitle={`Evaporated: ${simResult.evaporatedMassPct}%`} />
           </div>
 
           <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden relative min-h-[500px] flex flex-col">

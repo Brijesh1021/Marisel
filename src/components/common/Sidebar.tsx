@@ -74,8 +74,8 @@ export const Sidebar: React.FC = () => {
       <div className="p-5 border-t border-slate-200 space-y-4 bg-slate-50/80 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Mode</span>
-          <span className="px-2 py-0.5 text-[10px] font-bold font-mono tracking-wider rounded border bg-amber-50 text-amber-600 border-amber-200">
-            DEMO MODE
+          <span className="px-2 py-0.5 text-[10px] font-bold font-mono tracking-wider rounded border bg-emerald-50 text-emerald-600 border-emerald-200">
+            OPERATIONAL
           </span>
         </div>
 

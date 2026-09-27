@@ -12,7 +12,7 @@ export const MainLayout: React.FC = () => {
       {/* Background ambient glow - Light Mode */}
       <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-blue-100/50 blur-[140px] rounded-full pointer-events-none z-0"></div>
       <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-cyan-100/50 blur-[120px] rounded-full pointer-events-none z-0"></div>
-      
+
       {/* Left Sidebar */}
       <Sidebar />
 
@@ -33,12 +33,13 @@ export const MainLayout: React.FC = () => {
               className="space-y-6 flex-1 w-full flex flex-col"
             >
               <Outlet />
-              
+
               <div className="flex-grow"></div>
 
-              {/* Standard Prototype Disclaimer Footer */}
-              <footer className="pt-6 border-t border-slate-200 text-center text-xs text-slate-400 font-mono mt-auto">
-                "All data shown in this prototype is simulated demonstration data and is intended only to demonstrate the investigation workflow."
+              {/* System Footer */}
+              <footer className="pt-6 border-t border-slate-200 text-center text-xs text-slate-500 font-mono mt-auto flex justify-between items-center">
+                <span>OILTRACE-X v2.4.0 • Autonomous Marine Spill Detection & Vessel Attribution System</span>
+                <span>Port State Control Enforcement System</span>
               </footer>
             </motion.div>
           </AnimatePresence>

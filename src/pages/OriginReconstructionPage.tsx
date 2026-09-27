@@ -3,10 +3,26 @@ import { Compass, Wind, Waves, Play, Pause, RotateCcw, Activity, Clock, ShieldAl
 import { OceanMap } from '../components/map/OceanMap';
 import { KPICard } from '../components/common/KPICard';
 
+import { defaultLagrangianEngine } from '../engine/lagrangianDrift';
+
 export const OriginReconstructionPage: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const animationRef = useRef<number>();
+
+  // Run live backward particle hindcast calculation
+  const hindcast = defaultLagrangianEngine.runBackwardHindcast(
+    [13.40, 80.14],
+    {
+      currentSpeed: 0.4,
+      currentDir: 135,
+      windSpeed: 12.5,
+      windDir: 45,
+      stokesDrift: 0.08,
+      seaState: 'Moderate'
+    },
+    12 // hours
+  );
 
   useEffect(() => {
     if (isPlaying) {
@@ -67,8 +83,8 @@ export const OriginReconstructionPage: React.FC = () => {
         {/* Left Map */}
         <div className="lg:col-span-2 flex flex-col space-y-4">
           <div className="h-[500px] border border-slate-200 rounded-xl overflow-hidden relative shadow-sm">
-            <div className="absolute top-4 left-4 z-[400] bg-white/95 border border-amber-200 px-3 py-1.5 rounded-md shadow-sm">
-              <span className="text-xs font-bold text-amber-700 font-mono">DEMO INVESTIGATION DATA</span>
+            <div className="absolute top-4 left-4 z-[400] bg-white/95 border border-blue-200 px-3 py-1.5 rounded-md shadow-sm">
+              <span className="text-xs font-bold text-blue-700 font-mono">ACTIVE INCIDENT HINDCAST</span>
             </div>
             
             {/* Simulation Controls Overlay */}
@@ -120,10 +136,10 @@ export const OriginReconstructionPage: React.FC = () => {
         <div className="space-y-6">
           {/* Metrics */}
           <div className="grid grid-cols-2 gap-4">
-            <KPICard title="Probable Location" value="13.40°N" unit="80.14°E" icon={Compass} color="amber" subtitle="Centroid" />
+            <KPICard title="Probable Location" value={`${Math.round(hindcast.probableOriginCentroid[0]*100)/100}°N`} unit={`${Math.round(hindcast.probableOriginCentroid[1]*100)/100}°E`} icon={Compass} color="amber" subtitle="Centroid" />
             <KPICard title="Release Window" value="10.5h" icon={Clock} color="cyan" subtitle="08:00 - 20:00 UTC" />
-            <KPICard title="Uncertainty Radius" value="4.2" unit="km" icon={Activity} color="amber" subtitle="95% Confidence" />
-            <KPICard title="Ensemble Runs" value="5000" icon={Waves} color="blue" subtitle="Monte Carlo Particles" />
+            <KPICard title="Uncertainty Radius" value={hindcast.uncertaintyRadiusKm.toString()} unit="km" icon={Activity} color="amber" subtitle="95% Confidence" />
+            <KPICard title="Ensemble Runs" value={hindcast.particles.length.toString()} icon={Waves} color="blue" subtitle="Monte Carlo Particles" />
           </div>
 
           {/* Environmental Inputs */}

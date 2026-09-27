@@ -4,33 +4,50 @@ import { KPICard } from '../components/common/KPICard';
 import { mockCase, mockFalsePositives } from '../data/mockData';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
+import { defaultSpillClassifier } from '../engine/spillClassifier';
+
 export const SpillDetectionPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overlay');
   const [detectionState, setDetectionState] = useState<'idle' | 'acquiring' | 'segmenting' | 'extracting'>('idle');
 
+  // Compute live physics classification from real classifier engine
+  const classification = defaultSpillClassifier.classifySpill(
+    {
+      areaKm2: mockCase.area,
+      perimeterKm: mockCase.perimeter,
+      lengthKm: mockCase.length,
+      widthKm: mockCase.maxWidth,
+      orientationDeg: mockCase.orientation,
+      aspectRatio: mockCase.aspectRatio,
+      compactness: mockCase.compactness
+    },
+    45, // Wind direction
+    12.5 // Wind speed knots
+  );
+
   const runDetection = () => {
     setDetectionState('acquiring');
     setActiveTab('original');
-    
+
     setTimeout(() => {
       setDetectionState('segmenting');
       setActiveTab('processed');
     }, 1200);
-    
+
     setTimeout(() => {
       setDetectionState('extracting');
       setActiveTab('segmentation');
     }, 2800);
-    
+
     setTimeout(() => {
       setDetectionState('idle');
       setActiveTab('overlay');
     }, 4000);
   };
 
-  const radarData = mockFalsePositives.map(fp => ({
+  const radarData = classification.falsePositiveBreakdown.map(fp => ({
     subject: fp.category,
-    A: fp.percentage,
+    A: fp.probabilityPct,
     fullMark: 100
   }));
 
@@ -87,11 +104,10 @@ export const SpillDetectionPage: React.FC = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
-                  activeTab === tab 
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-sm' 
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${activeTab === tab
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-sm'
                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 {tab}
               </button>
@@ -101,7 +117,7 @@ export const SpillDetectionPage: React.FC = () => {
           <div className="h-[520px] rounded-xl bg-slate-200 flex items-center justify-center relative overflow-hidden border border-slate-200 shadow-md">
             {/* Simulated Satellite Image Background */}
             <div className="absolute inset-0 opacity-80 bg-cover bg-center" style={{ backgroundImage: "url('/sar_background.jpg')" }}></div>
-            
+
             <div className="absolute bottom-4 left-4 z-10">
               <p className="text-white font-mono text-[10px] tracking-widest drop-shadow-md bg-black/50 px-3 py-1.5 rounded border border-white/20">
                 [ {activeTab.toUpperCase()} SAR VIEW ]
@@ -119,7 +135,7 @@ export const SpillDetectionPage: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Detection Mask Overlay Simulation */}
             {(activeTab === 'segmentation' || activeTab === 'overlay') && detectionState === 'idle' && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
@@ -133,10 +149,10 @@ export const SpillDetectionPage: React.FC = () => {
                   `}
                 </style>
                 <svg viewBox="0 0 100 100" className="w-1/2 h-1/2 drop-shadow-[0_0_15px_rgba(37,99,235,0.4)]">
-                  <path 
-                    d="M40,20 Q60,10 70,30 T60,70 T30,80 T20,50 Z" 
-                    fill="#3b82f6" 
-                    stroke="#2563eb" 
+                  <path
+                    d="M40,20 Q60,10 70,30 T60,70 T30,80 T20,50 Z"
+                    fill="#3b82f6"
+                    stroke="#2563eb"
                     strokeWidth="1.5"
                     strokeDasharray="300"
                     style={{ animation: 'drawPath 1.5s ease-out forwards' }}
@@ -150,8 +166,8 @@ export const SpillDetectionPage: React.FC = () => {
         {/* Right Panel: Fingerprint */}
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
-            <KPICard title="Confidence" value={mockCase.confidence.toString()} unit="%" icon={Scan} color="emerald" subtitle="U-Net Model" />
-            <KPICard title="Look-alike" value="Low" icon={AlertTriangle} color="amber" subtitle="Likelihood" />
+            <KPICard title="Confidence" value={classification.confidenceScore.toString()} unit="%" icon={Scan} color="emerald" subtitle="Physics Classifier" />
+            <KPICard title="Look-alike" value={classification.lookAlikeRisk} icon={AlertTriangle} color="amber" subtitle="Likelihood" />
           </div>
 
           <div className="glass-panel p-5 rounded-xl border border-slate-200">
@@ -161,7 +177,7 @@ export const SpillDetectionPage: React.FC = () => {
                 <span>Spill Fingerprint</span>
               </h3>
             </div>
-            
+
             <div className="space-y-2.5 text-xs font-mono">
               <div className="flex justify-between py-1 border-b border-slate-100">
                 <span className="text-slate-500">Area:</span>
@@ -185,20 +201,20 @@ export const SpillDetectionPage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="glass-panel p-4 rounded-xl flex flex-col items-center border border-slate-200">
-             <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider w-full text-left mb-2">False Positive Analysis</h3>
-             <div className="w-full h-40">
-               <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="60%" data={radarData}>
-                    <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 9 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', fontSize: '10px', color: '#0f172a' }} />
-                    <Radar name="Likelihood %" dataKey="A" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.4} />
-                  </RadarChart>
-               </ResponsiveContainer>
-             </div>
+            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider w-full text-left mb-2">False Positive Analysis</h3>
+            <div className="w-full h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="60%" data={radarData}>
+                  <PolarGrid stroke="#e2e8f0" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 9 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', fontSize: '10px', color: '#0f172a' }} />
+                  <Radar name="Likelihood %" dataKey="A" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.4} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </div>

@@ -38,7 +38,7 @@ export interface Vessel {
   timeNearOrigin: string; // e.g., "42 min"
   aisQuality: 'High' | 'Medium' | 'Low';
   score: number; // 0 - 100
-  priority: 'High Investigation Priority' | 'Medium Investigation Priority' | 'Lower Correlation';
+  priority: 'Confirmed Involved' | 'High Investigation Priority' | 'Medium Investigation Priority' | 'Low Investigation Priority' | 'Lower Correlation' | 'Low Correlation';
   spatialMatch: number; // out of 25
   temporalMatch: number; // out of 25
   trajectoryMatch: number; // out of 20

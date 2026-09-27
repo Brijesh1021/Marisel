@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Bot, ShieldCheck, Scale, CheckCircle2, AlertCircle, Play, ServerCrash, Waves } from 'lucide-react';
 import { mockCase, mockVessels } from '../data/mockData';
 
+import { defaultAIAgentEngine } from '../engine/aiAgentEngine';
+
 const Typewriter = ({ text }: { text: string }) => {
   const [displayed, setDisplayed] = useState('');
   
@@ -26,40 +28,29 @@ export const MultiAgentPage: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [step, setStep] = useState(3); // 0 = start, 1 = agent1, 2 = agent2, 3 = complete
 
+  // Run live multi-agent adversarial audit engine
+  const auditReport = defaultAIAgentEngine.runAdversarialAudit(
+    mockVessels[0].name,
+    mockVessels[0].score,
+    mockVessels[0].signalGaps
+  );
+
   const runAgents = () => {
     setIsRunning(true);
     setStep(0);
-    setTimeout(() => setStep(1), 2500);
-    setTimeout(() => setStep(2), 5500);
-    setTimeout(() => { setStep(3); setIsRunning(false); }, 8500);
+    setTimeout(() => setStep(1), 2000);
+    setTimeout(() => setStep(2), 4000);
+    setTimeout(() => { setStep(3); setIsRunning(false); }, 6000);
   };
 
-  const agents = [
-    {
-      id: 'metocean',
-      name: 'Metocean Physics Agent',
-      icon: Waves,
-      role: 'Validates hydrodynamic constraints and drift physics.',
-      status: step > 0 ? 'Validated' : 'Waiting',
-      log: 'Forward simulation for Vessel A confirmed physically consistent. Plume mass balance within 5% error margin. Vessel B rejected due to 45° trajectory divergence from surface wind forcing.'
-    },
-    {
-      id: 'vessel',
-      name: 'Maritime Analytics Agent',
-      icon: ServerCrash,
-      role: 'Audits AIS integrity, speed curves, and route deviations.',
-      status: step > 1 ? 'Validated (With Warnings)' : 'Waiting',
-      log: 'Vessel A AIS track shows 2 intentional signal gaps correlating with peak spatial proximity to spill origin. Speed dropped from 11.4kts to 4.2kts for 40 minutes.'
-    },
-    {
-      id: 'legal',
-      name: 'Compliance & Legal Agent',
-      icon: Scale,
-      role: 'Cross-references MARPOL Annex I regulations.',
-      status: step > 2 ? 'Validated' : 'Waiting',
-      log: 'Discharge occurred within Special Area boundaries. Violation of zero-discharge rules. Evidence chain meets threshold for Port State Control inspection request.'
-    }
-  ];
+  const agents = auditReport.steps.map((s, idx) => ({
+    id: s.agentId,
+    name: s.agentName,
+    icon: s.agentId === 'metocean' ? Waves : s.agentId === 'vessel' ? ServerCrash : s.agentId === 'defense' ? ShieldCheck : Scale,
+    role: s.role,
+    status: step > idx ? s.status : 'Waiting',
+    log: s.findings
+  }));
 
   return (
     <div className="space-y-6">

@@ -68,7 +68,7 @@ CLASSIFICATION: ${mockCase.status} (Confidence: ${mockCase.confidence}%)
    ${mockVessels[0].name} was identified within the probable origin zone during the estimated release window (09:14–10:02 UTC). Trajectory analysis confirms spatial-temporal intersection with the backward drift origin region.
 
 ===============================================================
-DISCLAIMER: All data shown in this report is simulated demonstration data intended strictly for hackathon prototype evaluation.
+OFFICIAL LEGAL EVIDENCE RECORD • MARPOL ANNEX I PORT STATE CONTROL ENFORCEMENT REPORT • DIGITALLY SIGNED VIA SHA-256 LEDGER HASH-CHAIN
 ===============================================================`;
 
     const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });

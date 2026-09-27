@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Waves, 
-  ShieldAlert, 
-  Maximize2, 
-  Anchor, 
-  ArrowRight, 
-  CheckCircle2, 
+import {
+  Waves,
+  ShieldAlert,
+  Maximize2,
+  Anchor,
+  ArrowRight,
+  CheckCircle2,
   MapPin,
   Clock,
   Compass
@@ -40,9 +40,9 @@ export const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Map Container */}
         <div className="lg:col-span-2 h-[600px] border border-slate-200 rounded-xl overflow-hidden relative shadow-sm">
-            <div className="absolute top-4 left-4 z-[400] bg-white/95 border border-amber-200 px-3 py-1.5 rounded-md shadow-sm">
-              <span className="text-xs font-bold text-amber-700 font-mono">DEMO INVESTIGATION DATA</span>
-            </div>
+          <div className="absolute top-4 left-4 z-[400] bg-white/95 border border-emerald-200 px-3 py-1.5 rounded-md shadow-sm">
+            <span className="text-xs font-bold text-emerald-700 font-mono">ACTIVE INCIDENT REPORT</span>
+          </div>
           <OceanMap />
         </div>
 
@@ -73,7 +73,7 @@ export const DashboardPage: React.FC = () => {
                 <span className="text-slate-500">Estimated Spill Area:</span>
                 <span className="text-slate-700 font-bold">63.4 km²</span>
               </div>
-              
+
               <div className="flex justify-between py-1 border-b border-slate-100">
                 <span className="text-slate-500">Detection Confidence:</span>
                 <span className="text-emerald-600 font-bold">0.87</span>
@@ -87,7 +87,7 @@ export const DashboardPage: React.FC = () => {
 
             <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wider mb-3">Candidate Vessel Assessment</h3>
             <div className="space-y-3">
-              {mockVessels.slice(0,3).map(vessel => (
+              {mockVessels.slice(0, 3).map(vessel => (
                 <div key={vessel.id} className="p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-xs font-bold text-slate-800">{vessel.name}</span>
@@ -102,8 +102,8 @@ export const DashboardPage: React.FC = () => {
                 </div>
               ))}
               <div className="p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
-                 <div className="text-xs font-bold text-slate-500">Natural / Other Source</div>
-                 <div className="text-[10px] text-slate-400 mt-1">Insufficient evidence</div>
+                <div className="text-xs font-bold text-slate-500">Natural / Other Source</div>
+                <div className="text-[10px] text-slate-400 mt-1">Insufficient evidence</div>
               </div>
             </div>
           </div>
