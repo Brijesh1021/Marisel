@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Share2, FileText, Database, ShieldAlert, Waves, ServerCrash, Scale, MapPin, Scan, Anchor, Activity, Cpu } from 'lucide-react';
-import ReactFlow, { Background, Controls, Edge, Node, MarkerType, useNodesState, useEdgesState, Handle, Position } from 'reactflow';
+import ReactFlow, { Background, Controls, Edge, Node, MarkerType, useNodesState, useEdgesState, Handle, Position, BackgroundVariant } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { mockVessels } from '../data/mockData';
 
@@ -93,7 +93,7 @@ export const EvidenceGraphPage: React.FC = () => {
       data: { 
         label: culprit.name.split(' (')[0], icon: Anchor, score: 98, isMain: true,
         styleClass: 'bg-emerald-950/80 border-emerald-500 text-emerald-50 ring-4 ring-emerald-500/20', headerClass: 'bg-emerald-900 border-emerald-700', footerClass: 'bg-emerald-800 text-emerald-200',
-        telemetry: ['IMO: 9340623', 'Type: Oil Tanker', `Draft: ${culprit.draft}m`, `Heading: ${culprit.heading}°`]
+        telemetry: ['IMO: 9340623', 'Type: Oil Tanker', `Length: ${culprit.length}m`, `Heading: ${culprit.heading}°`]
       } 
     },
     { 
@@ -164,7 +164,7 @@ export const EvidenceGraphPage: React.FC = () => {
           className="fusion-graph-dark"
         >
           {/* Tactical grid background */}
-          <Background color="#1e293b" gap={30} size={2} variant="cross" />
+          <Background color="#1e293b" gap={30} size={2} variant={BackgroundVariant.Cross} />
           <Controls className="bg-slate-800 border-slate-700 fill-slate-300" showInteractive={false} />
         </ReactFlow>
       </div>

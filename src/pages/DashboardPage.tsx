@@ -59,7 +59,7 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div className="flex justify-between py-1 border-b border-slate-200">
               <span className="text-slate-500">Spill Date:</span>
-              <span className="text-slate-700 font-bold">{mockCase.date}</span>
+              <span className="text-slate-700 font-bold">{mockCase.acquisitionDate}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-200">
               <span className="text-slate-500">Location:</span>
