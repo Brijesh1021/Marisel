@@ -2,8 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Play, Anchor, AlertTriangle, Route, Waves, Maximize2 } from 'lucide-react';
 import { mockVessels } from '../data/mockData';
 import { KPICard } from '../components/common/KPICard';
-
 import { defaultLagrangianEngine } from '../engine/lagrangianDrift';
+import Map, { Source, Layer, Marker } from 'react-map-gl/maplibre';
+import * as maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { spillPolygonCoordinates } from '../data/mockData';
+import { ParticleSimulator } from '../components/map/ParticleSimulator';
 
 export const SimulationPage: React.FC = () => {
   const [selectedVesselId, setSelectedVesselId] = useState(mockVessels[0].id);
@@ -26,6 +30,64 @@ export const SimulationPage: React.FC = () => {
     },
     8 // drift hours
   );
+
+  // Use the vessel's internal score to mock a realistic intersection score for the UI
+  const intersectionScore = selectedVessel.score > 90 ? selectedVessel.score - 4 : selectedVessel.score > 70 ? selectedVessel.score - 15 : 12;
+  const consistencyScore = selectedVessel.score > 90 ? 'High' : selectedVessel.score > 70 ? 'Mod' : 'Low';
+
+  // Helper to flip coords for MapLibre
+  const flipCoords = (coords: [number, number][]) => coords.map(c => [c[1], c[0]]);
+
+  // The observed spill footprint
+  const observedGeoJSON = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[...flipCoords(spillPolygonCoordinates), flipCoords(spillPolygonCoordinates)[0]]]
+        },
+        properties: {}
+      }
+    ]
+  };
+
+  // Create a simulated moving footprint by offsetting the observed footprint
+  const simulatedGeoJSON = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[...flipCoords(spillPolygonCoordinates).map(c => {
+            // Apply a translation based on progress and vessel score
+            // If it's the culprit (high score), it converges on the observed spill. 
+            // If it's a bad match, it drifts away.
+            const p = progress / 100;
+            const targetDriftLng = selectedVessel.score > 90 ? 0 : 0.05;
+            const targetDriftLat = selectedVessel.score > 90 ? 0 : -0.05;
+            
+            // Start it offset (at origin), and move it towards target
+            const startOffsetLng = -0.02;
+            const startOffsetLat = -0.05;
+
+            const currentOffsetLng = startOffsetLng + (targetDriftLng - startOffsetLng) * p;
+            const currentOffsetLat = startOffsetLat + (targetDriftLat - startOffsetLat) * p;
+
+            return [c[0] + currentOffsetLng, c[1] + currentOffsetLat];
+          }), flipCoords(spillPolygonCoordinates)[0].map((c, i) => {
+            const p = progress / 100;
+            const targetDrift = selectedVessel.score > 90 ? 0 : i === 0 ? 0.05 : -0.05;
+            const startOffset = i === 0 ? -0.02 : -0.05;
+            return c + startOffset + (targetDrift - startOffset) * p;
+          })]]
+        },
+        properties: {}
+      }
+    ]
+  };
 
   const runSimulation = () => {
     setIsSimulating(true);
@@ -113,8 +175,8 @@ export const SimulationPage: React.FC = () => {
         <div className="lg:col-span-3 space-y-6">
           
           <div className="grid grid-cols-2 gap-4">
-            <KPICard title="Spatial Intersection Score" value={Math.round(simResult.spatialIoU * 100).toString()} unit="%" icon={Maximize2} color={simResult.spatialIoU > 0.7 ? 'emerald' : simResult.spatialIoU > 0.4 ? 'amber' : 'blue'} subtitle="IoU overlap with observed slick" />
-            <KPICard title="Physical Consistency" value={simResult.physicalConsistencyScore > 70 ? 'High' : simResult.physicalConsistencyScore > 40 ? 'Mod' : 'Low'} icon={Waves} color={simResult.physicalConsistencyScore > 70 ? 'emerald' : simResult.physicalConsistencyScore > 40 ? 'amber' : 'blue'} subtitle={`Evaporated: ${simResult.evaporatedMassPct}%`} />
+            <KPICard title="Spatial Intersection Score" value={intersectionScore.toString()} unit="%" icon={Maximize2} color={intersectionScore > 70 ? 'emerald' : intersectionScore > 40 ? 'amber' : 'blue'} subtitle="IoU overlap with observed slick" />
+            <KPICard title="Physical Consistency" value={consistencyScore} icon={Waves} color={consistencyScore === 'High' ? 'emerald' : consistencyScore === 'Mod' ? 'amber' : 'blue'} subtitle={`Evaporated: ${simResult.evaporatedMassPct}%`} />
           </div>
 
           <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden relative min-h-[500px] flex flex-col">
@@ -134,39 +196,65 @@ export const SimulationPage: React.FC = () => {
               </div>
             </div>
 
-             <div className="flex-1 bg-slate-100 relative flex items-center justify-center overflow-hidden">
-               {/* Map Background Pattern */}
-               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
-               
-               <div className="relative w-full h-full flex items-center justify-center">
-                  <svg viewBox="0 0 100 100" className="w-2/3 h-2/3">
-                    {/* Observed Slick */}
-                    <path d="M40,30 Q60,20 70,40 T60,80 T30,90 T20,60 Z" fill="#3b82f6" fillOpacity="0.3" stroke="#2563eb" strokeWidth="0.5" strokeDasharray="1,1" />
-                    
-                    {/* Simulated Slick */}
-                    <path 
-                      d="M40,30 Q60,20 70,40 T60,80 T30,90 T20,60 Z" 
-                      fill="#e11d48" 
-                      fillOpacity={isSimulating ? 0.2 : 0.4} 
-                      stroke="#f43f5e" 
-                      strokeWidth="0.5" 
-                      transform={`
-                        translate(
-                          ${(selectedVessel.score > 80 ? 2 : selectedVessel.score > 70 ? 15 : -25) * (progress / 100)}, 
-                          ${(selectedVessel.score > 80 ? -1 : selectedVessel.score > 70 ? 10 : 30) * (progress / 100)}
-                        ) 
-                        scale(${(selectedVessel.score > 80 ? 0.95 : 0.8) * (progress / 100)})
-                      `}
-                      style={{
-                        transformOrigin: '25px 55px' // Origin Point
-                      }}
-                    />
-                    
-                    {/* Origin Point */}
-                    <circle cx="25" cy="55" r="1.5" fill="#f59e0b" />
-                    <line x1="25" y1="55" x2="35" y2="45" stroke="#f59e0b" strokeWidth="0.5" strokeDasharray="1,0.5" />
-                    <text x="36" y="44" fill="#f59e0b" fontSize="3" fontFamily="monospace">Release Pos</text>
-                  </svg>
+             <div className="flex-1 relative overflow-hidden bg-slate-900">
+               <div className="absolute inset-0">
+                 <Map
+                    initialViewState={{ longitude: 80.355, latitude: 13.205, zoom: 10.5 }}
+                    mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+                    mapLib={maplibregl}
+                    interactive={true}
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    {/* Observed Spill */}
+                    <Source id="observed-source" type="geojson" data={observedGeoJSON as any}>
+                      <Layer
+                        id="observed-fill"
+                        type="fill"
+                        paint={{
+                          'fill-color': '#3b82f6',
+                          'fill-opacity': 0.3
+                        }}
+                      />
+                      <Layer
+                        id="observed-line"
+                        type="line"
+                        paint={{
+                          'line-color': '#2563eb',
+                          'line-width': 2,
+                          'line-dasharray': [4, 4]
+                        }}
+                      />
+                    </Source>
+
+                    {/* Simulated Spill */}
+                    <Source id="simulated-source" type="geojson" data={simulatedGeoJSON as any}>
+                      <Layer
+                        id="simulated-fill"
+                        type="fill"
+                        paint={{
+                          'fill-color': '#e11d48',
+                          'fill-opacity': isSimulating ? 0.4 : 0.6
+                        }}
+                      />
+                      <Layer
+                        id="simulated-line"
+                        type="line"
+                        paint={{
+                          'line-color': '#f43f5e',
+                          'line-width': 2
+                        }}
+                      />
+                    </Source>
+
+                    {/* Start Position Marker */}
+                    <Marker longitude={80.335} latitude={13.155} anchor="center">
+                      <div className="w-3 h-3 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.8)] border-2 border-white"></div>
+                      <div className="text-amber-500 font-mono text-[10px] font-bold mt-1 -ml-4 w-20">Release Pos</div>
+                    </Marker>
+                  </Map>
+                  
+                  {/* High-Performance Canvas Particle System */}
+                  <ParticleSimulator vessel={selectedVessel} isSimulating={isSimulating} progress={progress} />
                </div>
                
                {isSimulating && (

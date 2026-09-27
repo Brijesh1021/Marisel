@@ -114,21 +114,22 @@ export const SpillDetectionPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="h-[520px] rounded-xl bg-slate-200 flex items-center justify-center relative overflow-hidden border border-slate-200 shadow-md">
-            {/* Simulated Satellite Image Background */}
-            <div className="absolute inset-0 opacity-80 bg-cover bg-center" style={{ backgroundImage: "url('/sar_background.jpg')" }}></div>
+          <div className="h-[520px] rounded-xl bg-slate-900 flex items-center justify-center relative overflow-hidden border border-slate-200 shadow-md">
+            {/* Realistically Generated SAR Image Background for Ennore */}
+            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/ennore_sar_real.jpg')" }}></div>
 
-            <div className="absolute bottom-4 left-4 z-10">
+            <div className="absolute bottom-4 left-4 z-10 pointer-events-none">
               <p className="text-white font-mono text-[10px] tracking-widest drop-shadow-md bg-black/50 px-3 py-1.5 rounded border border-white/20">
-                [ {activeTab.toUpperCase()} SAR VIEW ]
+                [ ENNORE SAR ACQUISITION : {activeTab.toUpperCase()} VIEW ]
               </p>
             </div>
+            
             {detectionState !== 'idle' && (
-              <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-md flex items-center justify-center">
-                <div className="text-blue-700 font-mono flex flex-col items-center p-6 bg-white rounded-2xl border border-blue-200 shadow-[0_0_30px_rgba(37,99,235,0.1)]">
+              <div className="absolute inset-0 z-20 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-blue-500 font-mono flex flex-col items-center p-6 bg-slate-900 rounded-2xl border border-blue-900 shadow-[0_0_30px_rgba(37,99,235,0.2)]">
                   <Scan className={`w-12 h-12 mb-3 text-blue-500 ${detectionState === 'acquiring' ? 'animate-pulse' : 'animate-spin-slow'}`} />
                   <span className="animate-pulse">
-                    {detectionState === 'acquiring' && 'Acquiring SAR data...'}
+                    {detectionState === 'acquiring' && 'Acquiring SAR data for Ennore...'}
                     {detectionState === 'segmenting' && 'Running U-Net / SegFormer...'}
                     {detectionState === 'extracting' && 'Extracting Spill Mask...'}
                   </span>
@@ -136,25 +137,25 @@ export const SpillDetectionPage: React.FC = () => {
               </div>
             )}
 
-            {/* Detection Mask Overlay Simulation */}
+            {/* Detection Mask Overlay Simulation aligned to the dark slick in the image */}
             {(activeTab === 'segmentation' || activeTab === 'overlay') && detectionState === 'idle' && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+              <div className="absolute inset-0 pointer-events-none">
                 <style>
                   {`
                     @keyframes drawPath {
-                      0% { stroke-dashoffset: 300; fill-opacity: 0; }
+                      0% { stroke-dashoffset: 800; fill-opacity: 0; }
                       50% { stroke-dashoffset: 0; fill-opacity: 0.1; }
-                      100% { stroke-dashoffset: 0; fill-opacity: 0.6; }
+                      100% { stroke-dashoffset: 0; fill-opacity: 0.45; }
                     }
                   `}
                 </style>
-                <svg viewBox="0 0 100 100" className="w-1/2 h-1/2 drop-shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+                <svg viewBox="0 0 1000 520" className="w-full h-full drop-shadow-[0_0_15px_rgba(37,99,235,0.4)]">
                   <path
-                    d="M40,20 Q60,10 70,30 T60,70 T30,80 T20,50 Z"
+                    d="M 280,410 C 350,370 450,330 510,310 C 560,290 600,260 610,250 C 620,240 600,270 560,300 C 490,340 370,400 300,430 C 270,440 250,450 220,440 Z"
                     fill="#3b82f6"
-                    stroke="#2563eb"
-                    strokeWidth="1.5"
-                    strokeDasharray="300"
+                    stroke="#60a5fa"
+                    strokeWidth="3"
+                    strokeDasharray="800"
                     style={{ animation: 'drawPath 1.5s ease-out forwards' }}
                   />
                 </svg>

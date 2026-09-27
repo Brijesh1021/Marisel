@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Anchor, Activity, AlertTriangle, Navigation, Map, Navigation2 } from 'lucide-react';
 import { mockVessels } from '../data/mockData';
 import { KPICard } from '../components/common/KPICard';
+import { VesselRadarTracker } from '../components/map/VesselRadarTracker';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea } from 'recharts';
 
 export const VesselAnalysisPage: React.FC = () => {
@@ -76,19 +77,8 @@ export const VesselAnalysisPage: React.FC = () => {
                 <Map className="w-4 h-4 text-blue-600" />
                 <span>Vessel Trajectory Map</span>
               </h3>
-              <div className="flex-1 bg-slate-50 rounded-lg border border-slate-200 relative overflow-hidden flex items-center justify-center">
-                {/* Simulated Grid/Map */}
-                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#94a3b8 1px, transparent 1px), linear-gradient(90deg, #94a3b8 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                <div className="z-10 text-center">
-                  <Navigation className="w-10 h-10 text-blue-500/50 mx-auto mb-2 drop-shadow-sm" />
-                  <p className="text-xs text-slate-500 font-mono">[Interactive Map View for {selectedVessel.name.split(' (')[0]}]</p>
-                </div>
-                {/* Simulated Track */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-sm">
-                  <path d="M 50 250 Q 150 200 200 150 T 350 50" fill="none" stroke="#2563eb" strokeWidth="2" strokeDasharray="4 2" />
-                  <circle cx="200" cy="150" r="4" fill="#f59e0b" />
-                  <circle cx="350" cy="50" r="4" fill="#2563eb" />
-                </svg>
+              <div className="flex-1 rounded-lg border border-slate-200 relative overflow-hidden flex items-stretch justify-stretch min-h-[300px]">
+                <VesselRadarTracker vessel={selectedVessel} />
               </div>
             </div>
 

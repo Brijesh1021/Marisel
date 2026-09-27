@@ -30,9 +30,9 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-6">
       {/* Title & Subtitle */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Investigation Dashboard</h1>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Final Attribution Decision</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Evidence-Based Attribution Assessment Overview
+          Automated AI Evidence Fusion & Final Guilt Matrix
         </p>
       </div>
 
@@ -47,74 +47,89 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Right Current Investigation Panel */}
-        <div className="glass-panel p-6 rounded-xl flex flex-col justify-between border border-slate-200 h-[600px] overflow-y-auto">
-          <div>
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-              <h2 className="font-bold text-base text-slate-900 uppercase tracking-wider">Investigation Summary</h2>
+        <div className="glass-panel p-6 rounded-xl flex flex-col border border-slate-200 h-[600px] overflow-y-auto">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
+            <h2 className="font-bold text-base text-slate-900 uppercase tracking-wider">Final Decision Report</h2>
+          </div>
+
+          <div className="space-y-3.5 text-xs font-mono mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
+            <div className="flex justify-between py-1 border-b border-slate-200">
+              <span className="text-slate-500">Incident ID:</span>
+              <span className="text-blue-600 font-bold">{mockCase.id}</span>
             </div>
-
-            <div className="space-y-3.5 text-xs font-mono mb-6">
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Incident ID:</span>
-                <span className="text-blue-600 font-bold">{mockCase.id}</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Detection:</span>
-                <span className="text-slate-700 font-bold">12 Jan 2026, 10:24 UTC</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Location:</span>
-                <span className="text-slate-700 font-bold">12.10°N, 55.90°E</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Estimated Spill Area:</span>
-                <span className="text-slate-700 font-bold">63.4 km²</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Detection Confidence:</span>
-                <span className="text-emerald-600 font-bold">0.87</span>
-              </div>
-
-              <div className="flex justify-between py-1">
-                <span className="text-slate-500">Release Window:</span>
-                <span className="text-amber-600 font-bold">08:00–20:00 UTC</span>
-              </div>
+            <div className="flex justify-between py-1 border-b border-slate-200">
+              <span className="text-slate-500">Spill Date:</span>
+              <span className="text-slate-700 font-bold">{mockCase.date}</span>
             </div>
-
-            <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wider mb-3">Candidate Vessel Assessment</h3>
-            <div className="space-y-3">
-              {mockVessels.slice(0, 3).map(vessel => (
-                <div key={vessel.id} className="p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold text-slate-800">{vessel.name}</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">Score: {vessel.score}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 text-[10px] text-slate-500">
-                    <div>Origin Comp: <span className={vessel.originMatch > 10 ? 'text-emerald-600' : 'text-amber-600'}>{vessel.originMatch > 10 ? 'High' : 'Mod'}</span></div>
-                    <div>AIS Consist: <span className="text-emerald-600">High</span></div>
-                    <div>Behaviour: <span className={vessel.behaviourMatch < 8 ? 'text-amber-600' : 'text-emerald-600'}>{vessel.behaviourMatch < 8 ? 'Anomalous' : 'Normal'}</span></div>
-                    <div>Sim Consist: <span className={vessel.score > 80 ? 'text-emerald-600' : 'text-amber-600'}>{vessel.score > 80 ? 'High' : 'Mod'}</span></div>
-                  </div>
-                </div>
-              ))}
-              <div className="p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
-                <div className="text-xs font-bold text-slate-500">Natural / Other Source</div>
-                <div className="text-[10px] text-slate-400 mt-1">Insufficient evidence</div>
-              </div>
+            <div className="flex justify-between py-1 border-b border-slate-200">
+              <span className="text-slate-500">Location:</span>
+              <span className="text-slate-700 font-bold">13.20°N, 80.35°E</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-200">
+              <span className="text-slate-500">Spill Volume Est:</span>
+              <span className="text-slate-700 font-bold">400–600 tons</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-200">
+              <span className="text-slate-500">Overall Confidence:</span>
+              <span className="text-purple-600 font-bold text-sm">96.4%</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-500">Release Window:</span>
+              <span className="text-amber-600 font-bold">03:30–04:00 IST</span>
             </div>
           </div>
 
-          <button
-            onClick={() => navigate('/detection')}
-            className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition group"
-          >
-            <span>VIEW INVESTIGATION</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
+          <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wider mb-3">Primary Culprit Identified</h3>
+          
+          <div className="flex-1 space-y-4">
+            {/* Main Culprit Card */}
+            <div className="relative p-5 bg-gradient-to-br from-purple-900 to-indigo-900 rounded-xl shadow-xl border-2 border-purple-400/50 overflow-hidden group">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
+              
+              {/* Guilty Stamp */}
+              <div className="absolute -right-4 -top-4 opacity-10 transform rotate-12 pointer-events-none">
+                <ShieldAlert className="w-32 h-32 text-red-500" />
+              </div>
+
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className="inline-block px-2 py-0.5 bg-purple-500/30 text-purple-200 text-[10px] font-bold uppercase rounded border border-purple-400/30 mb-2">
+                      Match Confirmed
+                    </span>
+                    <h4 className="text-xl font-bold text-white tracking-tight">{mockVessels[0].name.split(' (')[0]}</h4>
+                    <p className="text-xs text-purple-200 font-mono mt-1">IMO: 9340623 | Type: Oil Tanker</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border-2 border-white/20">
+                    <span className="text-lg font-bold text-white">{mockVessels[0].score}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                  <div className="bg-black/30 p-2 rounded border border-white/10">
+                    <div className="text-purple-300 text-[9px] uppercase mb-1">Spatial Lock</div>
+                    <div className="text-emerald-400 font-bold flex items-center"><CheckCircle2 className="w-3 h-3 mr-1" /> 98% Match</div>
+                  </div>
+                  <div className="bg-black/30 p-2 rounded border border-white/10">
+                    <div className="text-purple-300 text-[9px] uppercase mb-1">AIS Alibi</div>
+                    <div className="text-rose-400 font-bold flex items-center"><ShieldAlert className="w-3 h-3 mr-1" /> Anomalous</div>
+                  </div>
+                  <div className="bg-black/30 p-2 rounded border border-white/10 col-span-2 flex justify-between items-center">
+                    <span className="text-purple-300 text-[9px] uppercase">Simulation Overlap</span>
+                    <span className="text-emerald-400 font-bold">92%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate('/detection')}
+              className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-md flex items-center justify-center space-x-2 transition group border border-slate-700 hover:border-blue-500 mt-auto"
+            >
+              <span>View Full Dossier</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
         </div>
       </div>
 

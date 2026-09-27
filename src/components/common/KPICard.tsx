@@ -26,18 +26,18 @@ export const KPICard: React.FC<KPICardProps> = ({
   };
 
   return (
-    <div className="glass-panel glass-panel-hover p-5 rounded-xl flex items-center justify-between">
-      <div>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</p>
-        <div className="mt-1 flex items-baseline space-x-1.5">
-          <span className="text-2xl font-bold font-mono text-slate-900">{value}</span>
-          {unit && <span className="text-xs font-semibold text-slate-500">{unit}</span>}
+    <div className="glass-panel glass-panel-hover p-4 lg:p-5 rounded-xl flex items-start justify-between gap-3 overflow-hidden">
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] lg:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">{title}</p>
+        <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+          <span className="text-xl lg:text-2xl font-bold font-mono text-slate-900 tracking-tight">{value}</span>
+          {unit && <span className="text-[11px] lg:text-xs font-semibold text-slate-500">{unit}</span>}
         </div>
-        {subtitle && <p className="mt-1 text-[11px] text-slate-400">{subtitle}</p>}
+        {subtitle && <p className="mt-1.5 text-[10px] lg:text-[11px] text-slate-400 leading-snug">{subtitle}</p>}
       </div>
 
-      <div className={`p-3 rounded-lg border ${colorMap[color]}`}>
-        <Icon className="w-5 h-5" />
+      <div className={`p-2.5 lg:p-3 rounded-lg border shrink-0 ${colorMap[color]}`}>
+        <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
       </div>
     </div>
   );

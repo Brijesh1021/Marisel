@@ -38,7 +38,7 @@ export const MainLayout: React.FC = () => {
 
               {/* System Footer */}
               <footer className="pt-6 border-t border-slate-200 text-center text-xs text-slate-500 font-mono mt-auto flex justify-between items-center">
-                <span>OILTRACE-X v2.4.0 • Autonomous Marine Spill Detection & Vessel Attribution System</span>
+                <span>MARISEL v2.4.0 • Autonomous Marine Spill Detection & Vessel Attribution System</span>
                 <span>Port State Control Enforcement System</span>
               </footer>
             </motion.div>

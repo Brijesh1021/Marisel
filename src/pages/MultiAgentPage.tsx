@@ -21,7 +21,7 @@ const Typewriter = ({ text }: { text: string }) => {
     return () => clearInterval(interval);
   }, [text]);
   
-  return <span>{displayed}<span className="animate-pulse bg-slate-400 w-1.5 h-3 inline-block ml-1 align-middle"></span></span>;
+  return <span>{displayed}<span className="animate-pulse bg-current w-1.5 h-3.5 inline-block ml-1 align-middle"></span></span>;
 };
 
 export const MultiAgentPage: React.FC = () => {
@@ -98,16 +98,16 @@ export const MultiAgentPage: React.FC = () => {
                   {step === 3 ? 'Validation Complete' : isRunning ? 'Auditing Evidence...' : 'Awaiting Audit'}
                 </div>
                 <div className="text-xs text-slate-500 mt-2 max-w-[200px] font-mono">
-                  {step === 3 ? 'All agents reached consensus on primary hypothesis (Vessel A).' : 'System ready for multi-agent adversarial audit.'}
+                  {step === 3 ? `All agents reached consensus on primary hypothesis (${mockVessels[0].name.split(' (')[0]}).` : 'System ready for multi-agent adversarial audit.'}
                 </div>
               </div>
             </div>
           </div>
           
           <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-xs text-slate-700 space-y-2 font-mono">
-            <div className="flex justify-between"><span>Hypothesis 1 (Vessel A):</span> <span className="text-emerald-600 font-bold">Corroborated</span></div>
-            <div className="flex justify-between"><span>Hypothesis 2 (Vessel B):</span> <span className="text-rose-600 font-bold">Rejected</span></div>
-            <div className="flex justify-between"><span>Hypothesis 3 (Vessel C):</span> <span className="text-rose-600 font-bold">Rejected</span></div>
+            <div className="flex justify-between items-center"><span className="truncate pr-2">H1 ({mockVessels[0].name.split(' (')[0]}):</span> <span className="text-emerald-600 font-bold flex-shrink-0">Corroborated</span></div>
+            <div className="flex justify-between items-center"><span className="truncate pr-2">H2 ({mockVessels[1].name.split(' (')[0]}):</span> <span className="text-rose-600 font-bold flex-shrink-0">Rejected</span></div>
+            <div className="flex justify-between items-center"><span className="truncate pr-2">H3 ({mockVessels[2].name.split(' (')[0]}):</span> <span className="text-rose-600 font-bold flex-shrink-0">Rejected</span></div>
           </div>
         </div>
 
@@ -136,14 +136,29 @@ export const MultiAgentPage: React.FC = () => {
                 </div>
                 <div className="text-[10px] text-slate-500 font-mono mb-3">{agent.role}</div>
                 
-                <div className={`text-xs p-3 rounded-lg border font-mono ${
-                  step > idx ? 'bg-white border-slate-200 text-slate-700' 
-                  : 'bg-slate-50 border-slate-100 text-slate-400'
+                <div className={`text-xs p-4 rounded-lg border font-mono relative overflow-hidden transition-all duration-500 ${
+                  step > idx ? 'bg-slate-900 border-slate-700 text-emerald-400 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]' 
+                  : isRunning && step === idx ? 'bg-slate-900 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                  : 'bg-slate-50 border-slate-200 text-slate-400'
                 }`}>
-                  <div className="flex space-x-2">
-                    <span className={step > idx || (isRunning && step === idx) ? "text-blue-500 font-bold" : "text-slate-400 font-bold"}>&gt;</span>
-                    <span>
-                      {step < idx ? 'Awaiting initialization...' : 
+                  {/* Scanning beam effect when running */}
+                  {isRunning && step === idx && (
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent h-[200%] w-full animate-[scan_2s_linear_infinite]" style={{
+                      animationName: 'radar-scan'
+                    }}>
+                      <style>{`
+                        @keyframes radar-scan {
+                          0% { transform: translateY(-50%); }
+                          100% { transform: translateY(0%); }
+                        }
+                      `}</style>
+                    </div>
+                  )}
+                  
+                  <div className="flex space-x-2 relative z-10 leading-relaxed">
+                    <span className={step > idx ? "text-emerald-500 font-bold" : isRunning && step === idx ? "text-blue-500 font-bold animate-pulse" : "text-slate-400 font-bold"}>&gt;</span>
+                    <span className="flex-1">
+                      {step < idx ? 'Awaiting initialization stream...' : 
                        step === idx && isRunning ? <Typewriter text={agent.log} /> : 
                        agent.log}
                     </span>

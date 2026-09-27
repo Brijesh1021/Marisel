@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  Waves, 
+  Waves,
   LayoutDashboard, 
   Scan,
   Compass, 
@@ -11,34 +11,38 @@ import {
   Bot,
   Network,
   Wind,
-  FileText
+  FileText,
+  Filter,
+  Gavel
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const navItems = [
-    { path: '/', label: '1. Dashboard', icon: LayoutDashboard },
-    { path: '/detection', label: '2. Spill Detection', icon: Scan },
-    { path: '/origin-reconstruction', label: '3. Origin Reconstruction', icon: Compass },
-    { path: '/vessel-analysis', label: '4. Vessel Analysis', icon: Radar },
-    { path: '/hypotheses', label: '5. Hypotheses', icon: HelpCircle },
-    { path: '/simulation', label: '6. Counterfactual Simulation', icon: PlaySquare },
-    { path: '/multi-agent', label: '7. Multi-Agent Investigation', icon: Bot },
-    { path: '/evidence-graph', label: '8. Evidence Graph', icon: Network },
-    { path: '/future-spread', label: '9. Future Spread', icon: Wind },
-    { path: '/reports', label: '10. Reports', icon: FileText },
+    { path: '/', label: '1. Spill Detection', icon: Scan },
+    { path: '/origin-reconstruction', label: '2. Origin Reconstruction', icon: Compass },
+    { path: '/vessel-analysis', label: '3. Vessel Tracking', icon: Radar },
+    { path: '/rule-prefilter', label: '4. Rule Pre-filter', icon: Filter },
+    { path: '/simulation', label: '5. Vessel Simulation', icon: PlaySquare },
+    { path: '/multi-agent', label: '6. AI Agent Layer', icon: Bot },
+    { path: '/evidence-graph', label: '7. Evidence Fusion', icon: Network },
+    { path: '/attribution-decision', label: '8. Attribution Decision', icon: Gavel },
+    { path: '/outputs', label: '9. Outputs & Validation', icon: FileText },
   ];
 
   return (
     <aside className="w-64 bg-white/60 backdrop-blur-xl border-r border-slate-200 flex flex-col justify-between shrink-0 select-none z-20">
       <div>
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-200 flex items-center space-x-3">
-          <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded-lg text-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
-            <Waves className="w-6 h-6 animate-pulse-subtle" />
+        <div className="p-5 border-b border-slate-200 flex flex-col items-center justify-center space-y-3 relative overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
+          <div className="w-24 h-24 rounded-full bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] flex items-center justify-center p-1 border-2 border-blue-100 z-10 transition-transform hover:scale-105 duration-300 relative">
+            <img src="/logo.png" alt="MARISEL Logo" className="w-full h-full object-contain rounded-full" />
+            
+            {/* Radar scan effect over logo */}
+            <div className="absolute inset-0 rounded-full border border-blue-400/20 pointer-events-none"></div>
           </div>
-          <div>
-            <h1 className="font-display font-bold text-lg text-slate-900 tracking-wide drop-shadow-sm">OILTRACE-X</h1>
-            <p className="text-[11px] text-blue-600/80 tracking-widest uppercase font-mono">Attribution Platform</p>
+          <div className="text-center z-10">
+            <h1 className="font-display font-extrabold text-2xl text-slate-900 tracking-tight drop-shadow-sm">MARISEL</h1>
+            <p className="text-[10px] text-blue-600/80 tracking-[0.2em] uppercase font-bold mt-0.5">Maritime Intelligence</p>
           </div>
         </div>
 

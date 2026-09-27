@@ -4,6 +4,7 @@ import { OceanMap } from '../components/map/OceanMap';
 import { KPICard } from '../components/common/KPICard';
 
 import { defaultLagrangianEngine } from '../engine/lagrangianDrift';
+import { mockCase } from '../data/mockData';
 
 export const OriginReconstructionPage: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -12,7 +13,7 @@ export const OriginReconstructionPage: React.FC = () => {
 
   // Run live backward particle hindcast calculation
   const hindcast = defaultLagrangianEngine.runBackwardHindcast(
-    [13.40, 80.14],
+    mockCase.centroid as [number, number],
     {
       currentSpeed: 0.4,
       currentDir: 135,
@@ -117,7 +118,7 @@ export const OriginReconstructionPage: React.FC = () => {
                     setIsPlaying(false);
                   }}
                 />
-                <span>09:15 UTC</span>
+                <span>22:15 UTC</span>
               </div>
               
               <button 
@@ -137,7 +138,7 @@ export const OriginReconstructionPage: React.FC = () => {
           {/* Metrics */}
           <div className="grid grid-cols-2 gap-4">
             <KPICard title="Probable Location" value={`${Math.round(hindcast.probableOriginCentroid[0]*100)/100}°N`} unit={`${Math.round(hindcast.probableOriginCentroid[1]*100)/100}°E`} icon={Compass} color="amber" subtitle="Centroid" />
-            <KPICard title="Release Window" value="10.5h" icon={Clock} color="cyan" subtitle="08:00 - 20:00 UTC" />
+            <KPICard title="Release Window" value="45 min" icon={Clock} color="cyan" subtitle={mockCase.estimatedReleaseWindow} />
             <KPICard title="Uncertainty Radius" value={hindcast.uncertaintyRadiusKm.toString()} unit="km" icon={Activity} color="amber" subtitle="95% Confidence" />
             <KPICard title="Ensemble Runs" value={hindcast.particles.length.toString()} icon={Waves} color="blue" subtitle="Monte Carlo Particles" />
           </div>
