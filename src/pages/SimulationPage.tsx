@@ -200,7 +200,6 @@ export const SimulationPage: React.FC = () => {
                  <Map
                     initialViewState={{ longitude: 80.355, latitude: 13.205, zoom: 10.5 }}
                     mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-                    mapLib={maplibregl}
                     interactive={true}
                     style={{ width: '100%', height: '100%' }}
                   >
