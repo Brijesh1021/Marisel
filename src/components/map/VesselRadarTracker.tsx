@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Vessel } from '../../types';
 import { Target } from 'lucide-react';
 import Map, { Source, Layer, Marker } from 'react-map-gl/maplibre';
-import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface Props {
@@ -104,7 +103,6 @@ export const VesselRadarTracker: React.FC<Props> = ({ vessel }) => {
         <Map
           initialViewState={{ longitude: centerLng, latitude: centerLat, zoom: 10.5 }}
           mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-          mapLib={maplibregl}
           interactive={true}
           style={{ width: '100%', height: '100%' }}
         >

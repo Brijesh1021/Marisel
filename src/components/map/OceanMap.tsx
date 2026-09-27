@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Map, { Source, Layer, Marker, Popup } from 'react-map-gl/maplibre';
-import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { 
   spillPolygonCoordinates, 
@@ -102,7 +101,6 @@ export const OceanMap: React.FC<OceanMapProps> = ({
       <Map
         initialViewState={initialViewState}
         mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-        mapLib={maplibregl}
         interactive={true}
         style={{ width: '100%', height: '100%' }}
       >

@@ -4,7 +4,6 @@ import { mockVessels } from '../data/mockData';
 import { KPICard } from '../components/common/KPICard';
 import { defaultLagrangianEngine } from '../engine/lagrangianDrift';
 import Map, { Source, Layer, Marker } from 'react-map-gl/maplibre';
-import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { spillPolygonCoordinates } from '../data/mockData';
 import { ParticleSimulator } from '../components/map/ParticleSimulator';
